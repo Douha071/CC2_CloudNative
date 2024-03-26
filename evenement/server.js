@@ -1,7 +1,7 @@
 const express = require('express');
 const mongoose = require('mongoose');
 const Evenement = require('./evenementModel');
-const verifyToken = require('./middleware/verifyToken');
+const verifyToken = require('./auth-service/verifyToken');
 
 mongoose.connect('mongodb://localhost:27017/CC2_CloudNative', {
   useNewUrlParser: true,
