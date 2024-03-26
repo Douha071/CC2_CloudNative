@@ -17,16 +17,25 @@ db.once('open', () => {
 const app = express();
 app.use(express.json());
 
-app.get('/details', verifyToken, async (req, res) => {
-  const evenementdetails = await Evenement.find();
-  res.send(evenementdetails);
+
+router.post('/addEvent', async (req, res) => {
+  const { titre, description, date,lieu, categorie } = req.body;
+  const existingEvent = await Evenement.findOne({ date });
+
+  if (existingEvent) {
+    return res.status(400).json({ error: 'Event already exists' });
+  }
+  const event = new Evenement({
+  titre,description,date,categorie,
+  });
+  await event.save();
+  res.json(event);
 });
 
-app.post('/add', verifyToken, async (req, res) => {
-  const { titre,description,date,categorie} = req.body;
-  const evenement = new Evenement(req.body);
-  await evenement.save();
-  res.send(evenement);
+
+router.get('/event/:id', async (req, res) => {
+  const event = await Evenement.findById(req.params.id);
+  res.json(event);
 });
 
 app.listen(4000, () => {

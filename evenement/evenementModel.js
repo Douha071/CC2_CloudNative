@@ -1,11 +1,11 @@
 const mongoose = require('mongoose');
 
 const evenementSchema = new mongoose.Schema({
-    titre: String,
-    description: String,
-    date: Date,
-    lieu: String,
-    categorie:String
+    titre: { type: String, required: true },
+    description: { type: String },
+    date: { type: Date, required: true, unique: true },
+    lieu: { type: String },
+    categorie: { type: String },
 });
 
 module.exports = mongoose.model('evenement', evenementSchema);

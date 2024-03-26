@@ -18,20 +18,39 @@ db.once('open', () => {
 const app = express();
 app.use(express.json());
 
-app.post('/add', verifyToken, async (req, res) => {
-  const { nom,email,login,mdp} = req.body;
-  const user = new User(req.body);
+
+router.post('/addUtilisateur', async (req, res) => {
+  const { nom, email, login, mdp } = req.body;
+  const existingUser = await User.findOne({ email });
+
+  if (existingUser) {
+    return res.status(400).json({ error: 'User already exists' });
+  }
+  const hashedPassword = await bcrypt.hash(mdp, 10);
+  const user = new User({ nom, email, login, mdp: hashedPassword });
   await user.save();
-  res.send(user);
+const token = jwt.sign({ userId: user._id }, process.env.SECRET_KEY, {
+    expiresIn: '1h',
+  });
+  res.json({ user, token });
 });
 
-app.post('/connecter', async (req, res) => {
+
+router.post('/connect', async (req, res) => {
   const { login, mdp } = req.body;
   const user = await User.findOne({ login });
-  if (!user) return res.sendStatus(401);
-  if (!user.comparePassword(mdp)) return res.sendStatus(401);
-  const token = user.createToken();
-  res.send(token);
+  if (!user) {
+    return res.status(400).json({ error: 'Invalid login or password' });
+  }
+  const isMatch = await bcrypt.compare(mdp, user.mdp);
+
+  if (!isMatch) {
+    return res.status(400).json({ error: 'Invalid login or password' });
+  }
+  const token = jwt.sign({ userId: user._id }, process.env.SECRET_KEY, {
+    expiresIn: '1h',
+  });
+  res.json({ user, token });
 });
 
 app.listen(3000, () => {
